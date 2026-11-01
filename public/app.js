@@ -256,7 +256,7 @@
   const timerText = document.getElementById('timer-text');
   const qCategoryTag = document.getElementById('q-category-tag');
   const qText = document.getElementById('q-text');
-  const optionButtons = document.querySelectorAll('.arena-opt-card, .option-btn');
+  const optionButtons = document.querySelectorAll('.option-btn');
   const submissionStatus = document.getElementById('submission-status');
   const liveTrackerChips = document.getElementById('live-tracker-chips');
 
@@ -341,7 +341,7 @@
   function triggerReaction(emoji) {
     if (!reactionsLayer) return;
     const el = document.createElement('div');
-    el.className = 'arena-float-reaction';
+    el.className = 'floating-reaction';
     el.textContent = emoji;
     el.style.left = `${Math.floor(Math.random() * 70 + 15)}%`;
     reactionsLayer.appendChild(el);
@@ -369,9 +369,9 @@
     });
 
     // Avatar Selection
-    avatarSelector.querySelectorAll('.arena-avatar-btn, .avatar-btn').forEach(btn => {
+    avatarSelector.querySelectorAll('.avatar-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        avatarSelector.querySelectorAll('.arena-avatar-btn, .avatar-btn').forEach(b => b.classList.remove('selected'));
+        avatarSelector.querySelectorAll('.avatar-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
         selectedAvatar = btn.dataset.avatar;
         localStorage.setItem('syncclash_avatar', selectedAvatar);
@@ -482,7 +482,7 @@
     });
 
     // Floating Reactions Bar
-    document.querySelectorAll('.reaction-btn-item, .reaction-btn').forEach(btn => {
+    reactionBar.querySelectorAll('.reaction-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         sound.initCtx();
         sound.playClick();
@@ -492,27 +492,13 @@
       });
     });
 
-    // Sidebar navigation hooks
-    const sideNavRules = document.getElementById('side-nav-rules');
-    if (sideNavRules) {
-      sideNavRules.addEventListener('click', () => {
-        rulesModal.classList.remove('hidden');
-      });
-    }
-    const sideNavArena = document.getElementById('side-nav-arena');
-    if (sideNavArena) {
-      sideNavArena.addEventListener('click', () => {
-        document.getElementById('arena').scrollIntoView({ behavior: 'smooth' });
-      });
-    }
-
     // Play Again
     playAgainBtn.addEventListener('click', () => {
       sound.playClick();
       socket.emit('play_again');
     });
 
-    // Nav Logo click to reset/go home if disconnected
+    // Nav Logo click to reset/go home
     document.getElementById('nav-logo').addEventListener('click', () => {
       if (confirm('Leave current room and return to home screen?')) {
         window.location.href = window.location.origin + window.location.pathname;
@@ -573,10 +559,10 @@
       lobbyPlayersGrid.innerHTML = state.players.map(p => {
         const isMe = p.id === myPlayerId;
         return `
-          <div class="player-tile ${isMe ? 'is-me' : ''}">
-            <div class="player-tile-avatar">${p.avatar}</div>
-            <div class="player-tile-name">${escapeHtml(p.name)} ${isMe ? '(You)' : ''}</div>
-            ${p.isHost ? '<span class="player-tile-host">HOST 👑</span>' : ''}
+          <div class="player-card ${isMe ? 'is-you' : ''}">
+            <div class="player-avatar">${p.avatar}</div>
+            <div class="player-name">${escapeHtml(p.name)} ${isMe ? '(You)' : ''}</div>
+            ${p.isHost ? '<span class="host-badge-chip">HOST 👑</span>' : ''}
           </div>
         `;
       }).join('');
@@ -694,12 +680,12 @@
       revealLeaderboard.innerHTML = sorted.map((p, idx) => {
         const isMe = p.id === myPlayerId;
         return `
-          <div class="mini-row ${isMe ? 'is-me' : ''}">
-            <span class="mini-rank">#${idx + 1}</span>
-            <span class="mini-avatar">${p.avatar}</span>
-            <span class="mini-name">${escapeHtml(p.name)} ${isMe ? '(You)' : ''}</span>
-            ${p.streak > 1 ? `<span class="mini-streak">${p.streak}🔥</span>` : ''}
-            <span class="mini-score">${p.score.toLocaleString()}</span>
+          <div class="leaderboard-row ${isMe ? 'is-you' : ''}">
+            <span class="row-rank">#${idx + 1}</span>
+            <span class="row-avatar">${p.avatar}</span>
+            <span class="row-name">${escapeHtml(p.name)} ${isMe ? '(You)' : ''}</span>
+            ${p.streak > 1 ? `<span class="row-streak">${p.streak}🔥</span>` : ''}
+            <span class="row-score">${p.score.toLocaleString()}</span>
           </div>
         `;
       }).join('');
@@ -717,31 +703,31 @@
       let podiumHtml = '';
       if (sorted.length >= 2) {
         podiumHtml += `
-          <div class="podium-col col-2">
+          <div class="podium-col podium-2nd">
             <div class="podium-avatar">${sorted[1].avatar}</div>
             <div class="podium-name">${escapeHtml(sorted[1].name)}</div>
             <div class="podium-score">${sorted[1].score.toLocaleString()} pts</div>
-            <div class="podium-block">🥈 2</div>
+            <div class="podium-step">🥈 2</div>
           </div>
         `;
       }
       if (sorted.length >= 1) {
         podiumHtml += `
-          <div class="podium-col col-1">
+          <div class="podium-col podium-1st">
             <div class="podium-avatar">${sorted[0].avatar}</div>
             <div class="podium-name">${escapeHtml(sorted[0].name)}</div>
             <div class="podium-score">${sorted[0].score.toLocaleString()} pts</div>
-            <div class="podium-block">🥇 1</div>
+            <div class="podium-step">🥇 1</div>
           </div>
         `;
       }
       if (sorted.length >= 3) {
         podiumHtml += `
-          <div class="podium-col col-3">
+          <div class="podium-col podium-3rd">
             <div class="podium-avatar">${sorted[2].avatar}</div>
             <div class="podium-name">${escapeHtml(sorted[2].name)}</div>
             <div class="podium-score">${sorted[2].score.toLocaleString()} pts</div>
-            <div class="podium-block">🥉 3</div>
+            <div class="podium-step">🥉 3</div>
           </div>
         `;
       }
@@ -749,11 +735,11 @@
 
       // Full scores list
       finalScoresList.innerHTML = sorted.map((p, idx) => `
-        <div class="mini-row ${p.id === myPlayerId ? 'is-me' : ''}">
-          <span class="mini-rank">#${idx + 1}</span>
-          <span class="mini-avatar">${p.avatar}</span>
-          <span class="mini-name">${escapeHtml(p.name)}</span>
-          <span class="mini-score">${p.score.toLocaleString()} pts</span>
+        <div class="leaderboard-row ${p.id === myPlayerId ? 'is-you' : ''}">
+          <span class="row-rank">#${idx + 1}</span>
+          <span class="row-avatar">${p.avatar}</span>
+          <span class="row-name">${escapeHtml(p.name)}</span>
+          <span class="row-score">${p.score.toLocaleString()} pts</span>
         </div>
       `).join('');
     }
@@ -768,4 +754,3 @@
   // Kickoff
   init();
 })();
-
